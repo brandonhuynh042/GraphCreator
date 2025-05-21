@@ -34,11 +34,11 @@ int main() {
 	cout << "Second vertice?" << endl;
 	int vTwo;
 	cin >> vTwo;
-	adjacency[vOne-1][vTwo-1] = 1;
-	adjacency[vTwo-1][vOne-1] = 1;
-	cout << "Weight?" << endl;
+        cout << "Weight?" << endl;
 	int weight;
 	cin >> weight;
+	adjacency[vOne-1][vTwo-1] = weight;
+        adjacency[vTwo-1][vOne-1] = weight;
       }
     }
     else if (strcmp(input, "REMOVE") == 0) {
@@ -87,7 +87,12 @@ int main() {
 	  cout << vertices[j] << " ";
 	  for (int k = 0; k < 20; k++) {
 	    if (vertices[k] != 0) {
-	      cout << adjacency[j][k] << " ";
+	      if (adjacency[j][k] != 0) {
+		cout << "1 ";
+	      }
+	      else {
+		cout << "0 ";
+	      }
 	      if (k > 9) {
 		cout << " ";
 	      }
