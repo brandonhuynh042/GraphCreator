@@ -5,7 +5,7 @@
 #include "queue.h"
 using namespace std;
 
-int dijkstraPath(int source, int destination, vector<int> &visited, int adjacency[][20]);
+int dijkstraPath(int source, int destination, vector<int> &visited, int adjacency[][20], int vertices[]);
 
 int main() {
   bool quit = false;
@@ -70,7 +70,7 @@ int main() {
         cin >> delVert;
 	// delete the vertice itsself
         vertices[delVert - 1] = 0;
-	// delete all potential links it may have had
+  	// delete all potential links it may have had
         for (int a = 0; a < 20; a++) {
           if (a = delVert - 1) {
             for (int b = 0; b < 20; b++) {
@@ -125,7 +125,8 @@ int main() {
         int vTwo;
         cin >> vTwo;
 	vector<int> visited;
-	int dist = dijkstraPath(vOne, vTwo, visited, adjacency);
+	visited.push_back(1);
+	int dist = dijkstraPath(vOne, vTwo, visited, adjacency, vertices);
 	cout << dist << endl;
     }
     else if (strcmp(input, "QUIT") == 0) {
@@ -135,32 +136,44 @@ int main() {
   return 0;
 }
 
-int dijkstraPath(int source, int destination, vector<int> &visited, int adjacency[][20]) {
+int dijkstraPath(int source, int destination, vector<int> &visited, int adjacency[][20], int vertices[]) {
   cout << "starting" << endl;
   queue* curr = new queue(source, 0);
   vector<queue*> priorityQueue;
-  cout << "loop" << endl;
-  while (curr->getVertice() != destination) {
+  int vertCount = 0;
+  for (int i = 0; i < 19; i++) {
+    if (vertices[i] != 0) {
+      vertCount++;
+    }
+  }
+  bool validPath = false;
+  cout << visited.size() << endl;
+  cout << curr->getVertice() << endl;
+  cout << vertCount << endl;
+  while (curr->getVertice() != destination && (visited.size() - 1) != vertCount) {
+    cout << "gurt" << endl;
     int vert = curr->getVertice();
     cout << vert << endl;
     for (int i = 0; i < 20; i++) {
        if (adjacency[vert - 1][i] != 0) {
-	 queue* newQueue = new queue(i+1, curr->getDistance() + adjacency[vert][i]);
+	 queue* newQueue = new queue(i+1, curr->getDistance() + adjacency[vert-1][i]);
 	 cout << "Adding!" << newQueue->getDistance() << endl;
 	 priorityQueue.push_back(newQueue);
+	 validPath = true;
        }
     }
-    cout << "here 3" << endl;
+    if (validPath == true) {
+    cout << "added one" << endl;
     visited.push_back(curr->getVertice());
+    }
     for (int i = 0; i < priorityQueue.size(); i++) {
       if (priorityQueue[i] == curr) {
 	priorityQueue.erase(priorityQueue.begin() + i);
 	break;
       }
     }
-    cout << "here 4" << endl;
+      
     sort(priorityQueue.begin(), priorityQueue.end());
-    cout << priorityQueue[0]->getVertice() << endl;
     curr = priorityQueue.back();
     cout << "here 6" << endl;
   }
