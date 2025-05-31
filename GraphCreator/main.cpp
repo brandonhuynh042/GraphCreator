@@ -2,10 +2,14 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
+#include <map>
 #include "queue.h"
 using namespace std;
 
-int dijkstraPath(int source, int destination, vector<int> &visited, int adjacency[][20], int vertices[]);
+// This program implements a weighted, directional graph with the ability to find the shortest path using Dijsktra's Algorithm.
+// Last edited Brandon Huynh, 5/30/2025
+
+void dijkstraPath(int source, int destination, vector<int> &visited, int adjacency[][20], int vertices[]);
 
 int main() {
   bool quit = false;
@@ -124,10 +128,10 @@ int main() {
         cout << "Second vertice?" << endl;
         int vTwo;
         cin >> vTwo;
+	// this honestly doesn't need to be passed by ref. but i don't want to change it
 	vector<int> visited;
-	visited.push_back(1);
-	int dist = dijkstraPath(vOne, vTwo, visited, adjacency, vertices);
-	cout << dist << endl;
+	// find the path
+        dijkstraPath(vOne, vTwo, visited, adjacency, vertices); 
     }
     else if (strcmp(input, "QUIT") == 0) {
       quit = true;
@@ -136,47 +140,77 @@ int main() {
   return 0;
 }
 
-int dijkstraPath(int source, int destination, vector<int> &visited, int adjacency[][20], int vertices[]) {
-  cout << "starting" << endl;
+void dijkstraPath(int source, int destination, vector<int> &visited, int adjacency[][20], int vertices[]) {
+  //cout << "starting" << endl;
+  // start at the starting node, no distance yet.
   queue* curr = new queue(source, 0);
   vector<queue*> priorityQueue;
+  priorityQueue.push_back(curr);
   int vertCount = 0;
-  for (int i = 0; i < 19; i++) {
+  map<int, int> parents;
+  map<int, int> distances;
+  distances[source] = 0;
+  // see how many vertices there are, set these non source nodes to "infinity"
+  for (int i = 0; i < 20; i++) {
     if (vertices[i] != 0) {
       vertCount++;
+      distances[i+1] = 100000; // not infinity but very big.
     }
   }
-  bool validPath = false;
-  cout << visited.size() << endl;
-  cout << curr->getVertice() << endl;
-  cout << vertCount << endl;
-  while (curr->getVertice() != destination && (visited.size() - 1) != vertCount) {
-    cout << "gurt" << endl;
-    int vert = curr->getVertice();
-    cout << vert << endl;
-    for (int i = 0; i < 20; i++) {
-       if (adjacency[vert - 1][i] != 0) {
-	 queue* newQueue = new queue(i+1, curr->getDistance() + adjacency[vert-1][i]);
-	 cout << "Adding!" << newQueue->getDistance() << endl;
-	 priorityQueue.push_back(newQueue);
-	 validPath = true;
-       }
+  distances[source] = 0; // not the source though
+  // until finished, or no path is possible
+  while (!priorityQueue.empty() && curr) {
+    // sort, take smallest distance and pop from priority queue
+    sort(priorityQueue.begin(), priorityQueue.end(), [](queue* a, queue* b) {
+      return a->getDistance() > b->getDistance();
+    });
+    curr = priorityQueue.back();
+    priorityQueue.pop_back();
+    // reached the end vertice? print distance + path
+    if (curr->getVertice() == destination) {
+      cout << "Distance: " << curr->getDistance() << endl;
+      vector<int> path;
+      int current = destination;
+      // follow the parents to get path backwards
+      while (current != source) {
+        path.push_back(current);
+        current = parents[current];
+      }
+      path.push_back(source);
+      // make it fowards!
+      reverse(path.begin(), path.end());
+      cout << "Path: ";
+      for (int i = 0; i < path.size(); i++) {
+        cout << path[i] << " ";
+      }
+      cout << '\n';
+      return;
     }
-    if (validPath == true) {
-    cout << "added one" << endl;
+    // skip if it's already been looked through
+    if (find(visited.begin(), visited.end(), curr->getVertice()) != visited.end()) {
+      continue;
+    }
     visited.push_back(curr->getVertice());
-    }
-    for (int i = 0; i < priorityQueue.size(); i++) {
-      if (priorityQueue[i] == curr) {
-	priorityQueue.erase(priorityQueue.begin() + i);
-	break;
+    int vert = curr->getVertice();
+    // looking at all connections
+    for (int i = 0; i < 20; i++) {
+      // is there an edge there?
+      if (adjacency[vert - 1][i] != 0) {
+        int neighbor = i + 1;
+        if (find(visited.begin(), visited.end(), neighbor) == visited.end()) {
+          int newDist = curr->getDistance() + adjacency[vert - 1][i];
+	  // in case there's a shorter path
+          if (newDist < distances[neighbor]) {
+            distances[neighbor] = newDist;
+            queue* newQueue = new queue(neighbor, newDist);
+            priorityQueue.push_back(newQueue);
+            parents[neighbor] = vert;
+          }
+        }
       }
     }
-      
-    sort(priorityQueue.begin(), priorityQueue.end());
-    curr = priorityQueue.back();
-    cout << "here 6" << endl;
   }
-  return priorityQueue.back()->getDistance();
+  // no path.
+  cout << "No path found!" << endl;
+  return;
 }
-
